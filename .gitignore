@@ -1,0 +1,22 @@
+# Visual Studio / MSBuild
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.rsuser
+
+# Node / Vite
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# Local settings that should not be shared
+*.env
+appsettings.*.local.json
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+}
+
+.app {
+    min-height: 100vh;
+}
+
+.app-content {
+    padding: 24px;
+}
+
+.dashboard-loading {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+.widget-body {
+    height: 280px;
+}
+
+.widget-loading {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.chart {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-empty {
+    margin: 0;
+    color: #52514e;
+}
+
+.chart-legend-text {
+    color: #52514e;
+}
+.text-widget {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+}
+
+.text-widget-content {
+    flex: 1;
+    overflow: auto;
+}
+
+.text-widget-text {
+    white-space: pre-wrap;
+}
+
+.text-widget-input {
+    flex: 1;
+    resize: none;
+}
+
+.text-widget-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.app-header h2 {
+    margin: 0;
+}
+
+.app-header {
+    margin-bottom: 24px;
+}
+
+.dialog-error {
+    margin-top: 16px;
+}
