@@ -3,7 +3,7 @@
 A dashboard of chart and text widgets. Tabular files (`.xlsx`, `.xls`, `.csv`) are imported and each
 table becomes a widget; the chart type is derived from the shape of the data rather than chosen by hand.
 
-**Live:** _(deployment URL)_
+**Live:** _([deployment URL](https://youscan-dashboard.onrender.com))_
 
 Built with ASP.NET Core 8 + PostgreSQL on the back end, React 19 + TypeScript + Vite on the front end.
 
