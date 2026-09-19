@@ -3,48 +3,31 @@ using YouScanDashboard.Server.Domain;
 
 namespace YouScanDashboard.Server.Importing;
 
-/// <summary>A stored table and the chart widget created for it (null when no chart matches the table).</summary>
-public sealed record DatasetImport(Dataset Dataset, Widget? Widget);
-
 /// <summary>
-/// Turns tables read from a file into datasets and chart widgets.
+/// Turns tables read from a file into chart widgets with their data.
 /// Shared by the startup import from the data folder and by file uploads.
 /// </summary>
 public sealed class DatasetImportFactory(ChartTypeSelector chartTypeSelector)
 {
-    /// <summary>Identifies a table inside a file of the data folder, e.g. "stacked-bar.csv#stacked-bar".</summary>
+    /// <summary>Identifies a table inside a file, e.g. "stacked-bar.csv#stacked-bar".</summary>
     public string SourceKey(string fileName, ImportedTable table) => $"{fileName}#{table.Name}";
 
-    /// <summary>Data of the folder is kept after its widget is deleted, so the file is not imported again.</summary>
-    public IReadOnlyList<DatasetImport> CreateFromDataFolder(IReadOnlyList<ImportedTable> tables, string fileName, int nextPosition) =>
-        Create(tables, table => Dataset.FromFile(SourceKey(fileName, table), table.Data), nextPosition);
-
-    /// <summary>Uploaded data belongs to its widget and is deleted together with it.</summary>
-    public IReadOnlyList<DatasetImport> CreateFromUpload(IReadOnlyList<ImportedTable> tables, int nextPosition) =>
-        Create(tables, table => Dataset.ForWidget(table.Data), nextPosition);
-
-    private IReadOnlyList<DatasetImport> Create(
-        IReadOnlyList<ImportedTable> tables,
-        Func<ImportedTable, Dataset> createDataset,
-        int nextPosition)
+    /// <summary>A widget for every table that matches a chart; a table that matches none is skipped.</summary>
+    public IReadOnlyList<Widget> CreateWidgets(IReadOnlyList<ImportedTable> tables, int nextPosition)
     {
-        var imports = new List<DatasetImport>(tables.Count);
+        var widgets = new List<Widget>(tables.Count);
 
         foreach (var table in tables)
         {
-            if (table.Data.Columns.Count == 0)
+            if (chartTypeSelector.Select(table.Data) is not { } chartType)
             {
                 continue;
             }
 
-            var dataset = createDataset(table);
-            var widget = chartTypeSelector.Select(table.Data) is { } chartType
-                ? Widget.CreateChart(chartType, dataset, nextPosition++)
-                : null;
-
-            imports.Add(new DatasetImport(dataset, widget));
+            // The dataset is saved together with its widget through the navigation property.
+            widgets.Add(Widget.CreateChart(chartType, Dataset.Create(table.Data), nextPosition++));
         }
 
-        return imports;
+        return widgets;
     }
 }

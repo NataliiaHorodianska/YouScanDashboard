@@ -9,6 +9,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<Widget> Widgets => Set<Widget>();
 
+    /// <summary>Tables of the data folder that were already imported.</summary>
+    public DbSet<ImportedSource> ImportedSources => Set<ImportedSource>();
+
     /// <summary>Position after the last widget, so a new widget is added to the end of the grid.</summary>
     public async Task<int> NextWidgetPositionAsync(CancellationToken cancellationToken) =>
         (await Widgets.MaxAsync(w => (int?)w.Position, cancellationToken) ?? -1) + 1;

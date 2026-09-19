@@ -18,7 +18,8 @@ public sealed class CellFormatter
     /// <summary>Returns null for an empty cell.</summary>
     public FormattedCell? Format(object? value) => value switch
     {
-        double number => new FormattedCell(number.ToString(CultureInfo.InvariantCulture), CanBeNumber: true, CanBeDate: false),
+        // A cell that is already a number still has to be finite: see FromText.
+        double number => new FormattedCell(number.ToString(CultureInfo.InvariantCulture), double.IsFinite(number), CanBeDate: false),
         DateTime date => new FormattedCell(FormatDate(date), CanBeNumber: false, CanBeDate: true),
         string text when !string.IsNullOrWhiteSpace(text) => FromText(text.Trim()),
         null or string => null,
@@ -27,7 +28,7 @@ public sealed class CellFormatter
 
     private FormattedCell FromText(string text) => new(
         text,
-        // NaN and Infinity are not chart values and cannot be written to JSON.
+        // NaN and Infinity are not chart values and cannot be written to JSON: such a cell stays text.
         CanBeNumber: double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number),
         CanBeDate: DateTime.TryParseExact(text, IsoDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out _));
 

@@ -40,22 +40,20 @@ public sealed class DataUploadService(
         }
         catch (Exception exception)
         {
+            // The library throws different exception types for broken files: all of them mean "cannot be read".
             logger.LogWarning(exception, "Uploaded file '{FileName}' could not be read.", fileName);
             return UploadResult.Failed(UploadError.UnreadableFile);
         }
 
         var nextPosition = await db.NextWidgetPositionAsync(cancellationToken);
-        var widgets = importFactory
-            .CreateFromUpload(tables, nextPosition)
-            .Select(import => import.Widget)
-            .OfType<Widget>()
-            .ToList();
+        var widgets = importFactory.CreateWidgets(tables, nextPosition);
 
         if (widgets.Count == 0)
         {
             return UploadResult.Failed(UploadError.NoChartTables);
         }
 
+        // Only tables shown as widgets are stored; each dataset is saved through its widget.
         db.Widgets.AddRange(widgets);
         await db.SaveChangesAsync(cancellationToken);
 

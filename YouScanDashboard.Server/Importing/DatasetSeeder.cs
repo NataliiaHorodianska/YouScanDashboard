@@ -6,7 +6,7 @@ namespace YouScanDashboard.Server.Importing;
 
 /// <summary>
 /// Imports every supported file from the data folder on startup.
-/// Idempotent: an already imported table (same file and sheet) is skipped,
+/// Idempotent: a table that is already recorded in <see cref="AppDbContext.ImportedSources"/> is skipped,
 /// so deleted widgets do not come back after a restart.
 /// A file that cannot be read or saved is logged and skipped; other files are still imported.
 /// </summary>
@@ -29,9 +29,8 @@ public sealed class DatasetSeeder(
             return;
         }
 
-        var importedKeys = (await db.Datasets
-                .Where(d => d.SourceKey != null)
-                .Select(d => d.SourceKey!)
+        var importedKeys = (await db.ImportedSources
+                .Select(source => source.Key)
                 .ToListAsync(cancellationToken))
             .ToHashSet(StringComparer.Ordinal);
 
@@ -52,15 +51,15 @@ public sealed class DatasetSeeder(
                 .Where(table => !importedKeys.Contains(importFactory.SourceKey(fileName, table)))
                 .ToList();
 
-            var imports = importFactory.CreateFromDataFolder(newTables, fileName, nextPosition);
-
-            if (imports.Count == 0)
+            if (newTables.Count == 0)
             {
                 continue;
             }
 
-            var widgets = imports.Select(import => import.Widget).OfType<Widget>().ToList();
-            db.Datasets.AddRange(imports.Select(import => import.Dataset));
+            var widgets = importFactory.CreateWidgets(newTables, nextPosition);
+
+            // Every table is recorded, even one without a widget: the record is what prevents a second import.
+            db.ImportedSources.AddRange(newTables.Select(table => ImportedSource.Of(importFactory.SourceKey(fileName, table))));
             db.Widgets.AddRange(widgets);
 
             try
@@ -68,10 +67,12 @@ public sealed class DatasetSeeder(
                 await db.SaveChangesAsync(cancellationToken);
                 nextPosition += widgets.Count;
                 logger.LogInformation("Imported '{FileName}': {Tables} table(s), {Widgets} widget(s).",
-                    fileName, imports.Count, widgets.Count);
+                    fileName, newTables.Count, widgets.Count);
             }
             catch (DbUpdateException exception)
-            {              
+            {
+                // E.g. a table too large for a single jsonb value: skip this file, keep the others.
+                // The tracker is cleared so the failed entities are not saved again with the next file.
                 logger.LogError(exception, "File '{FileName}' could not be saved.", fileName);
                 db.ChangeTracker.Clear();
             }

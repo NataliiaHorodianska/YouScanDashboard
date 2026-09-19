@@ -60,27 +60,8 @@ public sealed class ChartColumnResolver
     }
 
     // Counted first so that the array is allocated once, with the exact size.
-    private int[] ValueIndexes(DatasetData data, int labelIndex)
-    {
-        var count = 0;
-        for (var i = 0; i < data.Columns.Count; i++)
-        {
-            if (i != labelIndex && data.Columns[i].Type == ColumnType.Number)
-            {
-                count++;
-            }
-        }
-
-        var indexes = new int[count];
-        var next = 0;
-        for (var i = 0; i < data.Columns.Count; i++)
-        {
-            if (i != labelIndex && data.Columns[i].Type == ColumnType.Number)
-            {
-                indexes[next++] = i;
-            }
-        }
-
-        return indexes;
-    }
+    private int[] ValueIndexes(DatasetData data, int labelIndex) =>
+     Enumerable.Range(0, data.Columns.Count)
+         .Where(i => i != labelIndex && data.Columns[i].Type == ColumnType.Number)
+         .ToArray();
 }

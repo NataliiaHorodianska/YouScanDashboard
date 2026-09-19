@@ -8,9 +8,17 @@ namespace YouScanDashboard.Server.Controllers;
 [Route("api/imports")]
 public sealed class ImportsController(DataUploadService uploads) : ControllerBase
 {
+    /// <summary>
+    /// Upper bound for an upload: far above any spreadsheet a dashboard shows, far below what a single
+    /// request may cost the server, whose whole table is held in memory while it is parsed.
+    /// </summary>
+    private const int MaxUploadBytes = 10 * 1024 * 1024;
+
     /// <summary>Imports an .xlsx, .xls or .csv file: every table that matches a chart becomes a widget.</summary>
     [HttpPost]
     [Consumes("multipart/form-data")]
+    // Answers 413 before the body is buffered, so an oversized file is never read at all.
+    [RequestSizeLimit(MaxUploadBytes)]
     public async Task<ActionResult<IReadOnlyList<WidgetSummaryResponse>>> Upload(IFormFile file, CancellationToken cancellationToken)
     {
         if (file.Length == 0)

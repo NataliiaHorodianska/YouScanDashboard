@@ -17,10 +17,6 @@ public sealed class DatasetConfiguration : IEntityTypeConfiguration<Dataset>
 
     public void Configure(EntityTypeBuilder<Dataset> builder)
     {
-        // Each table from the data folder is imported once. PostgreSQL treats NULLs as distinct,
-        // so any number of datasets owned by widgets is allowed.
-        builder.HasIndex(d => d.SourceKey).IsUnique();
-
         builder.Property(d => d.Data)
             .HasColumnType("jsonb")
             .HasConversion(
