@@ -22,8 +22,6 @@ public sealed class DatasetConfiguration : IEntityTypeConfiguration<Dataset>
             .HasConversion(
                 data => JsonSerializer.Serialize(data, JsonOptions),
                 json => JsonSerializer.Deserialize<DatasetData>(json, JsonOptions)!,
-                // Data is only created, never modified in place: comparing references is enough
-                // and avoids serializing the whole table on every change detection.
                 new ValueComparer<DatasetData>(
                     (left, right) => ReferenceEquals(left, right),
                     data => RuntimeHelpers.GetHashCode(data),

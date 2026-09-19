@@ -9,13 +9,22 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<Widget> Widgets => Set<Widget>();
 
-    /// <summary>Tables of the data folder that were already imported.</summary>
+    /// <summary>Tables of the data folder that were 
+    /// already imported only. Only for saving keys</summary>
     public DbSet<ImportedSource> ImportedSources => Set<ImportedSource>();
 
-    /// <summary>Position after the last widget, so a new widget is added to the end of the grid.</summary>
-    public async Task<int> NextWidgetPositionAsync(CancellationToken cancellationToken) =>
-        (await Widgets.MaxAsync(w => (int?)w.Position, cancellationToken) ?? -1) + 1;
+    /// <summary>The position right after the last widget, so a new widget goes to the end of the grid.</summary>
+    public async Task<int> NextWidgetPositionAsync(CancellationToken cancellationToken)
+    {
+        var lastPosition = await Widgets.MaxAsync(w => (int?)w.Position, cancellationToken);
+        return lastPosition is null ? 0 : lastPosition.Value + 1;
+    }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+     /// <summary>
+     /// All settings of the model. Input point
+     /// </summary>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+    }
 }

@@ -32,7 +32,4 @@ function WidgetCardView({ id, type }: WidgetCardProps) {
         </Card>
     );
 }
-
-// The card takes the widget's fields, not the widget object: the list is rebuilt after every create,
-// upload and delete, so only primitive props let memo keep the untouched cards (and their charts) as they are.
 export const WidgetCard = memo(WidgetCardView);

@@ -19,7 +19,6 @@ public sealed class WidgetsController(WidgetService widgets) : ControllerBase
         {
             return NotFound();
         }
-
         return widget;
     }
 
@@ -50,7 +49,6 @@ public sealed class WidgetsController(WidgetService widgets) : ControllerBase
         {
             return NotFound();
         }
-
         return NoContent();
     }
 }

@@ -42,7 +42,6 @@ public sealed class WidgetService(
             ? Widget.CreateText(position)
             : Widget.CreateChart(type, Dataset.Create(randomDatasetGenerator.Generate(type)), position);
 
-        // The generated dataset is saved together with the widget through the navigation property.
         db.Widgets.Add(widget);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -71,24 +70,23 @@ public sealed class WidgetService(
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        // A chart widget is deleted through its dataset, so the cascade removes both in one statement.
-        // Null means a text widget or a widget that is already gone: then only the widget row is deleted.
         var datasetId = await db.Widgets
             .Where(w => w.Id == id)
             .Select(w => w.DatasetId)
             .FirstOrDefaultAsync(cancellationToken);
 
         // Single DELETE statements: the table data is not loaded, and a widget that is already deleted returns false.
-        var deletedRows = datasetId is { } chartDataId
-            ? await db.Datasets.Where(d => d.Id == chartDataId).ExecuteDeleteAsync(cancellationToken)
+        var deletedRows = datasetId is { } existingDatasetId
+            ? await db.Datasets.Where(d => d.Id == existingDatasetId).ExecuteDeleteAsync(cancellationToken)
             : await db.Widgets.Where(w => w.Id == id).ExecuteDeleteAsync(cancellationToken);
 
         return deletedRows > 0;
     }
 
-    private WidgetDetailsResponse ToDetails(Widget widget) => new(
-        widget.Id,
-        widget.Type,
-        widget.Content,
-        widget.Dataset is null ? null : chartDataBuilder.Build(widget.Dataset.Data));
+    private WidgetDetailsResponse ToDetails(Widget widget)
+    {
+        var chart = widget.Dataset is null ? null : chartDataBuilder.Build(widget.Dataset.Data);
+
+        return new WidgetDetailsResponse(widget.Id, widget.Type, widget.Content, chart);
+    }
 }

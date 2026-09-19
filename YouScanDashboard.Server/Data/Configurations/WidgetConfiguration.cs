@@ -13,7 +13,8 @@ public sealed class WidgetConfiguration : IEntityTypeConfiguration<Widget>
         // Used to sort the grid and to find the next position.
         builder.HasIndex(w => w.Position);
 
-        // A widget cannot exist without its data: deleting a dataset deletes its widget.
+        // A widget cannot exist without its data:
+        // deleting a dataset deletes its widget.
         builder.HasOne(w => w.Dataset)
             .WithMany()
             .HasForeignKey(w => w.DatasetId)

@@ -6,6 +6,8 @@ using YouScanDashboard.Server.Data;
 using YouScanDashboard.Server.Importing;
 using YouScanDashboard.Server.Widgets;
 
+// .NET ships only a few text encodings. Old .xls files and CSVs saved by Excel use Windows code pages,
+// and ExcelDataReader cannot read them without this.
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,8 @@ var connectionString = builder.Configuration.GetConnectionString("Dashboard")
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
-
+// Services that keep no state are created once for the whole app.
+// Services that work with the database live per request, like AppDbContext itself.
 builder.Services.AddSingleton<CellFormatter>();
 builder.Services.AddSingleton<ITableFileReader, ExcelTableFileReader>();
 builder.Services.AddSingleton<ChartColumnResolver>();
@@ -41,6 +44,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Bring the database schema up to date and import the files from SeedData before the first request.
 await using (var scope = app.Services.CreateAsyncScope())
 {
     await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
@@ -58,7 +62,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.MapControllers();
 
 // Unknown API routes return 404 instead of falling through to the SPA's index.html.

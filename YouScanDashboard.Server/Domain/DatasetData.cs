@@ -9,4 +9,5 @@ public sealed record DatasetData(
     IReadOnlyList<DatasetColumn> Columns,
     IReadOnlyList<IReadOnlyList<string?>> Rows);
 
-public sealed record DatasetColumn(string Name, ColumnType Type);
+public sealed record DatasetColumn(string Name, 
+    ColumnType Type);

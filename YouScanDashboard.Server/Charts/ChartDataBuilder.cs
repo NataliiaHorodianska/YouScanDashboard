@@ -3,7 +3,7 @@ using YouScanDashboard.Server.Domain;
 
 namespace YouScanDashboard.Server.Charts;
 
-/// <summary>Turns a stored table into chart-ready data.</summary>
+/// <summary>Turns a stored table into chart-ready data: the series and a point for every label.</summary>
 public sealed class ChartDataBuilder(ChartColumnResolver columnResolver)
 {
     public ChartData Build(DatasetData data)
@@ -13,7 +13,7 @@ public sealed class ChartDataBuilder(ChartColumnResolver columnResolver)
             return new ChartData([], []);
         }
 
-        var accumulator = new ChartAccumulator(SeriesNames(data, columns), data.Rows.Count);
+        var accumulator = new ChartAccumulator(SeriesNames(data, columns));
 
         if (columns.SeriesIndex is { } seriesIndex)
         {
@@ -25,39 +25,35 @@ public sealed class ChartDataBuilder(ChartColumnResolver columnResolver)
         }
 
         var chart = accumulator.Build();
-
         return columns.LabelType == ColumnType.Date ? chart with { Points = OrderByDate(chart.Points) } : chart;
     }
 
-    /// <summary>Series of the chart: the value column names, or the values of the series column in a long table.</summary>
+    /// <summary>
+    /// The series of the chart. In a wide table they are the names of the value columns;
+    /// in a long table they are the names found in its text column, in the order they first appear.
+    /// </summary>
     private IReadOnlyList<string> SeriesNames(DatasetData data, ChartColumns columns)
     {
         if (columns.SeriesIndex is not { } seriesIndex)
         {
-            var names = new string[columns.ValueIndexes.Count];
-            for (var i = 0; i < names.Length; i++)
-            {
-                names[i] = data.Columns[columns.ValueIndexes[i]].Name;
-            }
-
-            return names;
+            return columns.ValueIndexes.Select(index => data.Columns[index].Name).ToList();
         }
-
         var series = new List<string>();
-        var known = new HashSet<string>(StringComparer.Ordinal);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var row in data.Rows)
         {
-            if (row[columns.LabelIndex] is not null && row[seriesIndex] is { } name && known.Add(name))
+            if (row[columns.LabelIndex] is not null && row[seriesIndex] is { } name && seen.Add(name))
             {
                 series.Add(name);
             }
         }
-
         return series;
     }
 
-    /// <summary>Wide table: every value column is a series of its own.</summary>
+    /// <summary>Wide table, eg Brand, Positive, Negative:
+    /// every value column is a series of its own.
+    /// </summary>
     private void AddWideTable(DatasetData data, ChartColumns columns, ChartAccumulator accumulator)
     {
         foreach (var row in data.Rows)
@@ -67,15 +63,17 @@ public sealed class ChartDataBuilder(ChartColumnResolver columnResolver)
                 continue;
             }
 
-            for (var i = 0; i < columns.ValueIndexes.Count; i++)
+            foreach (var valueIndex in columns.ValueIndexes)
             {
-                var valueIndex = columns.ValueIndexes[i];
                 accumulator.Add(label, data.Columns[valueIndex].Name, ParseNumber(row[valueIndex]));
             }
         }
     }
 
-    /// <summary>Long table: the Text column names the series, the last value column holds the value.</summary>
+    /// <summary>
+    /// Long table, eg Date, Channel, Mentions: the text column names the series
+    /// and the last number column holds the value.
+    /// </summary>
     private void AddLongTable(DatasetData data, ChartColumns columns, int seriesIndex, ChartAccumulator accumulator)
     {
         var valueIndex = columns.ValueIndexes[^1];
@@ -91,10 +89,12 @@ public sealed class ChartDataBuilder(ChartColumnResolver columnResolver)
         }
     }
 
-    // OrderBy reads the date of each label once, unlike a comparison that would parse it again on every compare.
+    // Labels are dates written as text ("2024-10-28"), so they are turned back into dates to be sorted.
     private IReadOnlyList<ChartPoint> OrderByDate(IReadOnlyList<ChartPoint> points) =>
-        points.OrderBy(point => DateTime.Parse(point.Label, CultureInfo.InvariantCulture, DateTimeStyles.None)).ToList();
+        points.OrderBy(point => DateTime.Parse(point.Label, CultureInfo.InvariantCulture)).ToList();
 
+    // Only cells of a number column get here, and that column was recognised as numbers
+    // because every value in it parsed, so Parse cannot fail.
     private double? ParseNumber(string? text) =>
         text is null ? null : double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
 }

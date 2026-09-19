@@ -33,13 +33,11 @@ public sealed class ChartColumnResolver
         {
             return null;
         }
-
         var valueIndexes = ValueIndexes(data, labelIndex.Value);
         if (valueIndexes.Length == 0)
         {
             return null;
         }
-
         var labelType = data.Columns[labelIndex.Value].Type;
         var seriesIndex = labelType == ColumnType.Date ? FirstIndex(data, ColumnType.Text) : null;
 
@@ -55,7 +53,6 @@ public sealed class ChartColumnResolver
                 return i;
             }
         }
-
         return null;
     }
 

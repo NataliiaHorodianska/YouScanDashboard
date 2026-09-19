@@ -4,8 +4,7 @@ using YouScanDashboard.Server.Domain;
 namespace YouScanDashboard.Server.Importing;
 
 /// <summary>
-/// Streams every table of a .xlsx, .xls or .csv file using ExcelDataReader.
-/// Column names come from the first row; column types are detected from values.
+/// Read table of a .xlsx, .xls or .csv file using ExcelDataReader.
 /// </summary>
 public sealed class ExcelTableFileReader(CellFormatter formatter) : ITableFileReader
 {
@@ -93,7 +92,11 @@ public sealed class ExcelTableFileReader(CellFormatter formatter) : ITableFileRe
         return rows;
     }
 
-    // Column names identify chart series, so they must be unique: "Value", "Value (2)", ...
+    // Column names become the series names of a chart, and every series needs its own name:
+    // two columns called "Value" would collide when the chart data is built.
+    // So a repeated name gets a number ("Value", "Value (2)", "Value (3)"),
+    // and a column without a header is named after its position ("Column5").
+    // Names are compared ignoring case: "Sales" and "sales" would look like a mistake in the legend.
     private List<string> ColumnNames(string[] headers, int[] ordinals)
     {
         var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -116,6 +119,7 @@ public sealed class ExcelTableFileReader(CellFormatter formatter) : ITableFileRe
     }
 
     // Row arrays are reused as-is unless empty columns have to be dropped.
+    // ** Filtering empty data in columns
     private IReadOnlyList<IReadOnlyList<string?>> SelectColumns(List<string?[]> rows, int[] ordinals, int columnCount)
     {
         if (ordinals.Length == columnCount)

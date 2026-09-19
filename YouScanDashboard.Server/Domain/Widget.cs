@@ -1,7 +1,9 @@
 ﻿namespace YouScanDashboard.Server.Domain;
 
 /// <summary>
-/// A dashboard widget. Chart widgets show a <see cref="Dataset"/>; text widgets hold <see cref="Content"/>.
+/// A dashboard widget. Chart widgets 
+/// show a <see cref="Dataset"/>
+/// ; text widgets hold <see cref="Content"/>.
 /// </summary>
 public sealed class Widget
 {
@@ -10,7 +12,8 @@ public sealed class Widget
     {
     }
 
-    private Widget(WidgetType type, int position, Dataset? dataset, string? content)
+    private Widget(WidgetType type, int position, 
+        Dataset? dataset, string? content)
     {
         Id = Guid.NewGuid();
         Type = type;
@@ -24,7 +27,8 @@ public sealed class Widget
 
     public WidgetType Type { get; private set; }
 
-    /// <summary>Order in the dashboard grid: a new widget is added to the end.</summary>
+    /// <summary>Order in the dashboard grid: 
+    /// a new widget is added to the end.</summary>
     public int Position { get; private set; }
 
     public Guid? DatasetId { get; private set; }
@@ -33,11 +37,14 @@ public sealed class Widget
 
     public string? Content { get; private set; }
 
-    public static Widget CreateChart(WidgetType type, Dataset dataset, int position)
+    public static Widget CreateChart(WidgetType type, 
+        Dataset dataset, int position)
     {
         if (type == WidgetType.Text)
         {
-            throw new ArgumentException("A text widget has no dataset: use CreateText.", nameof(type));
+            throw new ArgumentException("A text widget " +
+                "has no dataset: use CreateText.",
+                nameof(type));
         }
 
         return new Widget(type, position, dataset, content: null);
@@ -46,12 +53,14 @@ public sealed class Widget
     public static Widget CreateText(int position) =>
         new(WidgetType.Text, position, dataset: null, content: string.Empty);
 
-    /// <summary>Edit → Save flow of a text widget.</summary>
+    /// <summary>Edit - Save flow of 
+    /// a text widget.</summary>
     public void UpdateContent(string content)
     {
         if (Type != WidgetType.Text)
         {
-            throw new InvalidOperationException($"Widget '{Id}' of type '{Type}' has no text content.");
+            throw new InvalidOperationException($"Widget '{Id}' " +
+                $"of type '{Type}' has no text content.");
         }
 
         Content = content;

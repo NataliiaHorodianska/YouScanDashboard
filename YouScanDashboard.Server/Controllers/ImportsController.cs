@@ -8,13 +8,14 @@ namespace YouScanDashboard.Server.Controllers;
 [Route("api/imports")]
 public sealed class ImportsController(DataUploadService uploads) : ControllerBase
 {
-    /// <summary>
-    /// Upper bound for an upload: far above any spreadsheet a dashboard shows, far below what a single
-    /// request may cost the server, whose whole table is held in memory while it is parsed.
-    /// </summary>
-    private const int MaxUploadBytes = 10 * 1024 * 1024;
+    // 2 MB is plenty: that's tens of thousands of CSV rows, far more than anyone can read on a chart.
+    // The real reason for the limit is memory. The whole file is parsed in memory before it's saved,
+    // so one big upload could run the free Render instance (512 MB) out of memory and take the app down for everyone.
+    private const int MaxUploadBytes = 2 * 1024 * 1024;
 
-    /// <summary>Imports an .xlsx, .xls or .csv file: every table that matches a chart becomes a widget.</summary>
+    /// <summary>Imports an .xlsx, .xls or .csv file: 
+    /// every table that matches a chart becomes a widget.
+    /// </summary>
     [HttpPost]
     [Consumes("multipart/form-data")]
     // Answers 413 before the body is buffered, so an oversized file is never read at all.

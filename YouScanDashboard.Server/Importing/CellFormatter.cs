@@ -18,7 +18,8 @@ public sealed class CellFormatter
     /// <summary>Returns null for an empty cell.</summary>
     public FormattedCell? Format(object? value) => value switch
     {
-        // A cell that is already a number still has to be finite: see FromText.
+        // A cell that is already a number still
+        // has to be finite: see FromText.
         double number => new FormattedCell(number.ToString(CultureInfo.InvariantCulture), double.IsFinite(number), CanBeDate: false),
         DateTime date => new FormattedCell(FormatDate(date), CanBeNumber: false, CanBeDate: true),
         string text when !string.IsNullOrWhiteSpace(text) => FromText(text.Trim()),
@@ -26,12 +27,24 @@ public sealed class CellFormatter
         _ => new FormattedCell(Convert.ToString(value, CultureInfo.InvariantCulture)!, CanBeNumber: false, CanBeDate: false),
     };
 
-    private FormattedCell FromText(string text) => new(
-        text,
-        // NaN and Infinity are not chart values and cannot be written to JSON: such a cell stays text.
-        CanBeNumber: double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number),
-        CanBeDate: DateTime.TryParseExact(text, IsoDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out _));
+    private FormattedCell FromText(string text)
+    {
+        // A number is written with a dot: "1234.5". NaN and Infinity do not count as numbers:
+        // they cannot be drawn on a chart or written to JSON.
+        var isNumber = double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+            && double.IsFinite(number);
 
-    private string FormatDate(DateTime date) =>
-        date.ToString(date.TimeOfDay == TimeSpan.Zero ? "yyyy-MM-dd" : "yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+        // A date is accepted only in the ISO format, e.g. "2024-10-28", so "01.10.2024" is never guessed.
+        var isDate = DateTime.TryParseExact(text, IsoDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+
+        return new FormattedCell(text, isNumber, isDate);
+    }
+
+    private string FormatDate(DateTime date)
+    {
+        // A date without a time becomes "2024-10-28", a date with a time "2024-10-28T14:30:00".
+        var format = date.TimeOfDay == TimeSpan.Zero ? "yyyy-MM-dd" : "yyyy-MM-ddTHH:mm:ss";
+
+        return date.ToString(format, CultureInfo.InvariantCulture);
+    }
 }

@@ -29,7 +29,7 @@ async function readErrorMessage(response: Response): Promise<string> {
 }
 
 async function request<T>(method: string, path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
-    // FormData (file upload) is sent as-is: the browser sets the multipart Content-Type with its boundary.
+  
     const isJson = body !== undefined && !(body instanceof FormData);
 
     const response = await fetch(`/api${path}`, {

@@ -7,7 +7,6 @@ export const widgetKeys = {
     detail: (id: string) => ['widgets', id] as const,
 };
 
-// Suspense queries: loading is shown by the nearest <Suspense>, errors go to the nearest ErrorBoundary.
 export function useWidgets() {
     return useSuspenseQuery({
         queryKey: widgetKeys.all,

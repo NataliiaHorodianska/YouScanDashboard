@@ -17,7 +17,8 @@ public sealed class DatasetSeeder(
     IHostEnvironment environment,
     ILogger<DatasetSeeder> logger)
 {
-    /// <summary>Data folder relative to the application content root; copied on publish by the project file.</summary>
+    /// <summary>Data folder relative to the application content root; 
+    /// copied on publish by the project file.</summary>
     private const string DataFolder = "SeedData";
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
@@ -57,8 +58,6 @@ public sealed class DatasetSeeder(
             }
 
             var widgets = importFactory.CreateWidgets(newTables, nextPosition);
-
-            // Every table is recorded, even one without a widget: the record is what prevents a second import.
             db.ImportedSources.AddRange(newTables.Select(table => ImportedSource.Of(importFactory.SourceKey(fileName, table))));
             db.Widgets.AddRange(widgets);
 
@@ -72,7 +71,7 @@ public sealed class DatasetSeeder(
             catch (DbUpdateException exception)
             {
                 // E.g. a table too large for a single jsonb value: skip this file, keep the others.
-                // The tracker is cleared so the failed entities are not saved again with the next file.
+                // !!!The tracker is cleared so the failed entities are not saved again with the next file.
                 logger.LogError(exception, "File '{FileName}' could not be saved.", fileName);
                 db.ChangeTracker.Clear();
             }
@@ -88,7 +87,7 @@ public sealed class DatasetSeeder(
         }
         catch (Exception exception)
         {
-            // A broken file must not stop the application or the import of other files.
+            // A broken file must not stop the application  as usual*
             logger.LogError(exception, "File '{FileName}' could not be read.", fileName);
             return [];
         }

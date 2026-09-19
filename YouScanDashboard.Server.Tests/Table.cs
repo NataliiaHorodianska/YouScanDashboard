@@ -2,7 +2,7 @@ using YouScanDashboard.Server.Domain;
 
 namespace YouScanDashboard.Server.Tests;
 
-/// <summary>Builds small tables for tests: <c>Of([Text("Product"), Number("Orders")], ["Laptops", "340"])</c>.</summary>
+/// <summary>Builds small tables for tests: Of([Text("Product"), Number("Orders")], ["Laptops", "340"]).</summary>
 internal static class Table
 {
     public static DatasetData Of(IReadOnlyList<DatasetColumn> columns, params string?[][] rows) => new(columns, rows);

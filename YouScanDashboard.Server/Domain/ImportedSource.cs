@@ -13,7 +13,8 @@ public sealed class ImportedSource
 
     private ImportedSource(string key) => Key = key;
 
-    /// <summary>File and sheet of the table, e.g. "stacked-bar.csv#stacked-bar".</summary>
+    /// <summary>!!! File and sheet of the table, e.g.
+    /// "stacked-bar.csv#stacked-bar".</summary>
     public string Key { get; private set; } = null!;
 
     public static ImportedSource Of(string key) => new(key);

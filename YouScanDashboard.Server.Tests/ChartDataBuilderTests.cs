@@ -48,7 +48,6 @@ public sealed class ChartDataBuilderTests
         Assert.Equal(new[] { "Twitter", "News" }, chart.Series);
         Assert.Equal(2, chart.Points.Count);
         Assert.Equal(7d, chart.Points[1].Values["Twitter"]);
-        // No row for News on the second day: a gap, not a zero.
         Assert.Null(chart.Points[1].Values["News"]);
     }
 

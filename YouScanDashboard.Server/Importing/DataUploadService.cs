@@ -1,5 +1,4 @@
 ﻿using YouScanDashboard.Server.Data;
-using YouScanDashboard.Server.Domain;
 using YouScanDashboard.Server.Widgets;
 
 namespace YouScanDashboard.Server.Importing;
@@ -40,8 +39,10 @@ public sealed class DataUploadService(
         }
         catch (Exception exception)
         {
-            // The library throws different exception types for broken files: all of them mean "cannot be read".
-            logger.LogWarning(exception, "Uploaded file '{FileName}' could not be read.", fileName);
+            // The library throws different exception types
+            // for broken files: all of them mean "cannot be read".
+            logger.LogWarning(exception, "Uploaded file '{FileName}' " +
+                "could not be read.", fileName);
             return UploadResult.Failed(UploadError.UnreadableFile);
         }
 
@@ -53,10 +54,12 @@ public sealed class DataUploadService(
             return UploadResult.Failed(UploadError.NoChartTables);
         }
 
-        // Only tables shown as widgets are stored; each dataset is saved through its widget.
+        // Only tables shown as widgets are stored;
+        // each dataset is saved through its widget.
         db.Widgets.AddRange(widgets);
         await db.SaveChangesAsync(cancellationToken);
 
-        return UploadResult.Succeeded(widgets.Select(w => new WidgetSummaryResponse(w.Id, w.Type)).ToList());
+        return UploadResult.Succeeded(widgets.Select(w => 
+        new WidgetSummaryResponse(w.Id, w.Type)).ToList());
     }
 }
