@@ -95,6 +95,14 @@ cost of one request per widget. With a large dashboard that becomes a real probl
 opens six connections per host — and the fix would be a batch endpoint. At this size the trade-off is
 worth it.
 
+### Tests
+
+    dotnet test
+
+Unit tests cover the logic where the decisions live: how a chart type is chosen, how a table becomes
+chart data, and how a cell is recognised as a number or a date. Storage and HTTP are not covered —
+that would need a real PostgreSQL (e.g. Testcontainers), which felt out of proportion for this task.
+
 ## Known limitations
 
 These are conscious, not overlooked:
