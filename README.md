@@ -3,7 +3,7 @@
 A dashboard of chart and text widgets. Tabular files (`.xlsx`, `.xls`, `.csv`) are imported and each
 table becomes a widget; the chart type is derived from the shape of the data rather than chosen by hand.
 
-**Live:** _(deployment URL)_
+**Live:** _([deployment URL](https://youscan-dashboard.onrender.com))_
 
 Built with ASP.NET Core 8 + PostgreSQL on the back end, React 19 + TypeScript + Vite on the front end.
 
@@ -94,6 +94,14 @@ The list endpoint returning only ids and types is what makes the per-widget load
 cost of one request per widget. With a large dashboard that becomes a real problem — the browser only
 opens six connections per host — and the fix would be a batch endpoint. At this size the trade-off is
 worth it.
+
+### Tests
+
+    dotnet test
+
+Unit tests cover the logic where the decisions live: how a chart type is chosen, how a table becomes
+chart data, and how a cell is recognised as a number or a date. Storage and HTTP are not covered —
+that would need a real PostgreSQL (e.g. Testcontainers), which felt out of proportion for this task.
 
 ## Known limitations
 
