@@ -102,11 +102,13 @@ worth it.
 Unit tests cover the logic where the decisions live: how a chart type is chosen, how a table becomes
 chart data, and how a cell is recognised as a number or a date. Storage and HTTP are not covered —
 that would need a real PostgreSQL (e.g. Testcontainers), which felt out of proportion for this task.
+
 ### Sample files
 
-`SampleFiles/` holds the files I used to test the import by hand — each one checks a single rule
-(negative values fall back to a bar chart, a long table becomes one series per text value,
-a broken file returns 400, and so on). Upload any of them through the dashboard.
+The files I used to test the import by hand were sent by email together with this submission.
+Each one checks a single rule: negative values fall back to a bar chart, a long table becomes
+one series per text value, a broken file returns 400, and so on. Upload any of them through
+the dashboard to see the result.
 
 ## Known limitations
 
