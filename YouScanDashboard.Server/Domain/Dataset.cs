@@ -1,7 +1,5 @@
 ﻿namespace YouScanDashboard.Server.Domain;
 
-/// <summary>Table data shown by a chart widget. 
-/// A dataset belongs to its widget and is deleted  with it.</summary>
 public sealed class Dataset
 {
     // Required by EF Core for materialization.
